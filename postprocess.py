@@ -1,4 +1,3 @@
-"""Conservative, offline Russian passport OCR postprocessing (Python 3.9+)."""
 import argparse
 import calendar
 import csv
@@ -43,7 +42,6 @@ def anniversary(birth, years):
 
 
 def valid_dates(fields, as_of=AS_OF):
-    """Only calendar/age validity; loss, replacement and registry status are unknown."""
     try:
         birth, issued = parse_date(fields['Birth_date']), parse_date(fields['Issue_date'])
     except (ValueError, KeyError, TypeError):
@@ -86,7 +84,6 @@ def expected_mrz(fields):
 
 
 def visual(field):
-    """Recover reading order, reject missing lines from geometry and malformed scores."""
     if not isinstance(field, dict) or not field.get('lines'):
         return '', 0.0, False
     lines = sorted(field['lines'], key=lambda l: (l['box'][1], l['box'][0]))
@@ -122,12 +119,12 @@ class Processor:
         for key in FIELDS:
             value, score, complete = visual(document.get('viz', {}).get(key))
             if key == 'Middle_name_ru' and document.get('viz', {}).get(key) is None:
-                value, score, complete = '', 1.0, True  # Must also agree with MRZ.
+                value, score, complete = '', 1.0, True
             if not complete:
                 return answer, 'missing_or_incomplete:' + key
             fields[key], confidence[key] = value, score
-        # Matching MRZ is not independent confirmation: correlated errors exist.
-        # Even checksum-protected numeric fields must pass the confidence gate.
+
+
         if min(confidence.values()) < MIN_CONFIDENCE:
             return answer, 'low_visual_confidence'
         if not re.fullmatch(r'\d{2} \d{2} \d{6}', fields['Licence_number']):

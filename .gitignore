@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.DS_Store
+data/
+results/
+tmp/
+previous_version_before_strict.zip
